@@ -81,7 +81,7 @@
                                 exec-maven-plugin
                         </artifactId>
                         <configuration>
-                                <mainClass>br.odb.open688.app.Open688Server</mainClass>
+                                <mainClass>br.odb.opensub.app.OpenSubServer</mainClass>
                         </configuration>
                         </plugin>
                 </plugins>
