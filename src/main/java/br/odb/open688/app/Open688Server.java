@@ -1,13 +1,27 @@
 package br.odb.open688.app;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import br.odb.gameapp.ConsoleApplication;
 import br.odb.gameapp.UserCommandLineAction;
-import br.odb.open688.simulation.FuturisticScenario;
-import br.odb.open688.simulation.Mission;
-import br.odb.open688.simulation.Scenario;
-import br.odb.open688.simulation.Submarine;
+import br.odb.open688.app.commands.PauseCommand;
+import br.odb.open688.app.commands.PlayCommand;
+import br.odb.open688.app.commands.PumpCommand;
+import br.odb.open688.app.commands.QuitCommand;
+import br.odb.open688.app.commands.SteerCommand;
+import br.odb.open688.app.commands.StepCommand;
+import br.odb.open688.app.commands.ThrustCommand;
+import br.odb.open688.app.commands.ToggleCommand;
+import br.odb.open688.app.net.TelnetArmoryStation;
+import br.odb.open688.app.net.TelnetCartographyStation;
+import br.odb.open688.app.net.TelnetHealmStation;
+import br.odb.open688.app.net.TelnetPropulsionStation;
+import br.odb.open688.app.net.TelnetSonarStation;
+import br.odb.open688.simulation.campaign.FuturisticScenario;
+import br.odb.open688.simulation.campaign.Mission;
+import br.odb.open688.simulation.campaign.Scenario;
+import br.odb.open688.simulation.ship.Submarine;
 import br.odb.utils.Utils;
 
 public class Open688Server extends ConsoleApplication {
@@ -16,29 +30,28 @@ public class Open688Server extends ConsoleApplication {
 		STOPPED, PLAYING, PAUSED
 	}
 
-	private final ArrayList<Station> stations = new ArrayList<Station>();
+	private final List<Station> stations = new ArrayList<Station>();
 	private Mission mission;
 	private Thread tickerThread;
-	private Thread statusTickerThread;
 
 	SimulationStatus simulationStatus = SimulationStatus.STOPPED;
 
 	public static void main(String[] args) {
 
-		// Eventually, this part will be created acording to graphical menus
+		// Eventually, this part will be created according to graphical menus
 		Scenario scenario = new FuturisticScenario();
 		Mission mission = scenario.makeMission();
 
-		// This will probably never change.
+		// Create a dummy server.
 		Open688Server openSubServer = (Open688Server) new Open688Server()
 				.addStation(new TelnetSonarStation(1))
 				.addStation(new TelnetCartographyStation(2))
 				.addStation(new TelnetHealmStation(3))
 				.addStation(new TelnetPropulsionStation(4))
 				.addStation(new TelnetArmoryStation(5)).setScenario(scenario)
-				.setAppName("OpenSub")
+				.setAppName("Open688")
 				.setAuthorName("Daniel 'MontyOnTheRun' Monteiro")
-				.setLicenseName("3-Clause BSD").setReleaseYear(2014);
+				.setLicenseName("3-Clause BSD").setReleaseYear(2015);
 
 		openSubServer.createDefaultClient(); // just for the server
 		openSubServer.startMission(mission);
@@ -69,28 +82,25 @@ public class Open688Server extends ConsoleApplication {
 	private void startStatusTicker() {
 		this.tickerThread = new Thread(new StatusTickerRunnable(this));
 		this.tickerThread.start();
-		this.statusTickerThread = new Thread(new HTTPStatusTicker(this));
-		this.statusTickerThread.start();
 	}
 
 	@Override
 	public ConsoleApplication init() {
 
-		registerCommand(new StatusCommand());
-		registerCommand(new QuitCommand());
+		registerCommand(new StatusCommand( this ));
+		registerCommand(new QuitCommand( this ));
+		registerCommand(new PlayCommand( this ));
+		registerCommand(new PauseCommand( this ));
+		registerCommand(new StepCommand( this ));
 		registerCommand(new SteerCommand());
 		registerCommand(new ThrustCommand());
 		registerCommand(new ToggleCommand());
-		registerCommand(new PlayCommand());
-		registerCommand(new PauseCommand());
-		registerCommand(new StepCommand());
 		registerCommand(new PumpCommand());
 
 		return super.init();
 	}
 
 	private Open688Server setScenario(Scenario scenario) {
-
 		return this;
 	}
 
@@ -132,11 +142,9 @@ public class Open688Server extends ConsoleApplication {
 			} catch ( InvalidShipPart isp ) {
 				getClient().alert( "Invalid ship part!" );
 			} catch (Exception e) {
-
 				e.printStackTrace();
 			}
 		}
-
 	}
 
 	@Override

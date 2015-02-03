@@ -3,13 +3,14 @@ package br.odb.open688.app;
 import java.io.IOException;
 
 import br.odb.gameapp.ConsoleApplication;
+import br.odb.open688.app.net.TelnetClientServer;
 
 public class Station extends TelnetClientServer implements Runnable {
 
 	private Open688Server app;
 
-	Station(int diff) {
-		super(diff);
+	public Station(int clientId ) {
+		super( clientId );
 	}
 
 	public void setMasterClient(ConsoleApplication app) {

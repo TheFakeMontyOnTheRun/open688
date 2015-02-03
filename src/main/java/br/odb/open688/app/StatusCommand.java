@@ -2,9 +2,13 @@ package br.odb.open688.app;
 
 import br.odb.gameapp.ApplicationClient;
 import br.odb.gameapp.ConsoleApplication;
-import br.odb.open688.simulation.Submarine;
+import br.odb.gameapp.UserMetaCommandLineAction;
 
 public class StatusCommand extends UserMetaCommandLineAction {
+
+	public StatusCommand(ConsoleApplication application) {
+		super(application);
+	}
 
 	@Override
 	public void run( ConsoleApplication application, String operand ) {
